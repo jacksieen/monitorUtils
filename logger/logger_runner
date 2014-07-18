@@ -1,0 +1,7 @@
+#!/bin/bash 
+
+MAIL_FILE=/tmp/mail
+
+touch $MAIL_FILE
+java -jar logger.jar >> $MAIL_FILE
+
