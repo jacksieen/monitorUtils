@@ -3,6 +3,7 @@
  * Date Jul 2 17:20 CST 2014
  */
 
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -10,13 +11,12 @@ import java.text.*;
 
 public class logger{
     public static void main(String[] args) throws IOException{
-        Scanner in = new Scanner(new File("remotelog"));
-        /* String text = in.nextLine(); */
-        logger log = new logger();
-        while (in.hasNextLine()){
-            String text=in.nextLine();
+        Scanner in = new Scanner(System.in);
+        String text = in.nextLine();
+        /* while (in.hasNextLine()){ */
+            /* String text=in.nextLine(); */
             parsing(text);
-        }
+        /* } */
     }
     static void parsing(String log){
         /* regex to split messages */
@@ -36,6 +36,7 @@ public class logger{
         else if (ss[0].equals("[CS]")){
 
         }
+        else return;
     }
 }
 
