@@ -11,7 +11,7 @@ import java.text.*;
 
 public class logger{
     public static void main(String[] args) throws IOException{
-        File f = new File("remotelog");
+        File f = new File("/tmp/log/remotelog");
         Scanner in = new Scanner(f);
         while (in.hasNextLine()){
             String text=in.nextLine();

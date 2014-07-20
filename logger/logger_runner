@@ -1,16 +1,21 @@
 #!/bin/bash 
 
-MAIL_FILE=mail
-JAR_PATH=/home/jackson/codes
+MAIL_FILE=/tmp/log/mail
+JAR_PATH=/root/bin/slp
+
+if [ $# != 1 ]; then
+    echo Error usage!
+    exit 1
+fi
+
 if [ ! $TIME_INT ]; then
     TIME_INT=20
 fi
-echo $$ > piffile
+echo $$ > $1
 while true
 do
     touch $MAIL_FILE
     java -jar $JAR_PATH/logger.jar >> $MAIL_FILE
-    echo $TIME_INT
     sleep $TIME_INT
 done
 
