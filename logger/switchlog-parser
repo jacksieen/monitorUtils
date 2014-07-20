@@ -1,0 +1,33 @@
+#!/sbin/runscript
+# Copyright 1999-2014 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+
+PID_FILE="/run/switchlog-parser"
+PROGRAM="/root/bin/slp/logger_runner"
+
+start() {
+	ebegin "Starting switchlog-parser"
+    if [ ! -f $PID_FILE ]; then
+        $PROGRAM $PID_FILE &
+    else 
+        echo already running, check the pid file $PID_FILE
+    fi
+	eend $?
+    
+}
+
+stop() {
+	ebegin "Stopping switchlog-parser"
+    PID=`cat $PID_FILE`
+    kill $PID
+    rm $PID_FILE
+    result=$?
+	eend $result
+
+}
+
+#restart() { 
+#    stop()
+#    start()
+#}

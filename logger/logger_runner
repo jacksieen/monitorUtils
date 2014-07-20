@@ -1,7 +1,16 @@
 #!/bin/bash 
 
-MAIL_FILE=/tmp/mail
-
-touch $MAIL_FILE
-java -jar logger.jar >> $MAIL_FILE
+MAIL_FILE=mail
+JAR_PATH=/home/jackson/codes
+if [ ! $TIME_INT ]; then
+    TIME_INT=20
+fi
+echo $$ > piffile
+while true
+do
+    touch $MAIL_FILE
+    java -jar $JAR_PATH/logger.jar >> $MAIL_FILE
+    echo $TIME_INT
+    sleep $TIME_INT
+done
 

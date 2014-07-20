@@ -11,12 +11,15 @@ import java.text.*;
 
 public class logger{
     public static void main(String[] args) throws IOException{
-        Scanner in = new Scanner(System.in);
-        String text = in.nextLine();
-        /* while (in.hasNextLine()){ */
-            /* String text=in.nextLine(); */
+        File f = new File("remotelog");
+        Scanner in = new Scanner(f);
+        while (in.hasNextLine()){
+            String text=in.nextLine();
             parsing(text);
-        /* } */
+        }
+        FileWriter fw = new FileWriter(f);
+        fw.write("");
+        fw.close();
     }
     static void parsing(String log){
         /* regex to split messages */
@@ -51,10 +54,11 @@ class logentry{
     SimpleDateFormat outDf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss zzz");
 
     logentry(String[] logs){       //constructor
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM  dd HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd HH:mm:ss");
         try{
             deviceTime = sdf.parse(logs[1]);
         }catch (ParseException pe){
+            System.out.println(String.format("(can not parsing \"%s\", use the server time instead!)", logs[1]));
             deviceTime = new Date();
         }
         deviceTime.setYear(new Date().getYear());
@@ -72,7 +76,7 @@ class JP extends logentry{
     public String cmd;
     boolean loginFlag = false;
     JP(String[] logs){
-        super(logs);
+        super(logs); 
         String reg = "%\\S+:";
         Pattern pat = Pattern.compile(reg);
         Matcher mat = pat.matcher(content);
@@ -99,10 +103,11 @@ class JP extends logentry{
             if (mat.find()){
                 fromHost = mat.group().replace("host ","");
             }
-            mailContent = String.format("User %s attempt to login %s from %s, at %s", user, host, fromHost, outDf.format(receiveTime));
+            mailContent = String.format("User %s attempt to login %s from %s, at %s", user, host, fromHost, outDf.format(deviceTime));
         }
         else if (module.contains("AUTH-5") && content.contains("LOGIN FAILURE"))
             mailContent = String.format("%s at %s", content, outDf.format(receiveTime));
+
         else if (module.contains("UI_LOGIN_EVENT")){
             pat = Pattern.compile("User '\\w+' login");
             mat = pat.matcher(content);
@@ -110,18 +115,18 @@ class JP extends logentry{
                 loginFlag = true;
             }
         }
-        else if (module.contains("UI_CMDLINE_READ_LINE_")){
+        else if (module.contains("UI_CMDLINE_READ_LINE")){
             pat = Pattern.compile("User '\\w+");
             mat = pat.matcher(content);
             if (mat.find())
                 user = mat.group().replace("User '", "");
-            pat = Pattern.compile("command '\\w+");
+            pat = Pattern.compile("command .+");
             mat = pat.matcher(content);
             if (mat.find()){
-                cmd = mat.group().replace("command '", "");
+                cmd = mat.group().replace("command ", "");
             }
             mailContent = String.format("User %s issued command %s at %s", user, cmd, host);
-        }
+        } 
     }
 }
 
@@ -142,14 +147,13 @@ class H3C extends logentry{
             pat = Pattern.compile("TELNET .+");
             mat = pat.matcher(content);
             if (mat.find()){
-                mailContent = mat.group().replace("TELNET ","")+"\b at "+outDf.format(receiveTime);
+                mailContent = mat.group().replace("TELNET ","")+"\b at "+outDf.format(deviceTime);
                 String tmp = String.format(" login %s ", host);
                 mailContent = mailContent.replace(" log in ", tmp);
             }
         }
 
         else if (facility.contains("SHELL_LOGIN(")){
-            /* System.out.println("parsing "+facility+" "+content); */
             pat = Pattern.compile("\\w+ logged in");
             mat = pat.matcher(content);
             if (mat.find())
@@ -158,11 +162,11 @@ class H3C extends logentry{
             mat = pat.matcher(content);
             if (mat.find())
                 fromHost = mat.group().replace("from ", "");
-            mailContent = String.format("User %s attempt to login %s from %s, at %s", user, host, fromHost, outDf.format(receiveTime));
+            mailContent = String.format("User %s attempt to login %s from %s, at %s", user, host, fromHost, outDf.format(deviceTime));
         }
 
         else if (facility.contains("SHELL_CMD")||facility.contains("SHELL_SECLOG")){
-            pat = Pattern.compile("Command is \\S+");
+            pat = Pattern.compile("Command is .+");
             mat = pat.matcher(content);
             if (mat.find())
                 cmd = mat.group().replace("Command is ","");
