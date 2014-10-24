@@ -1,0 +1,76 @@
+#!/bin/bash
+
+USER="logger";
+PSWD="logger";
+ROOTUSER="root";
+ROOTPSWD="pwd";
+DATABASE="db";
+TABLE1="Log_switch";
+TABLE2="Log_switcherror";
+TABLE3="Log_host";
+TABLE_SHELL="Log_switchlogin"
+LOGDIR="$HOME/remote_log"
+
+for ((i=1;i<=10;i++))
+do
+    arr1[i]=Log_arr1$i
+done
+
+for ((i=5;i<=10;i++))
+do
+    arr2[i]=Log_arr2$i
+done
+
+for ((i=1;i<=12;i++))
+do
+    if [ $i != 4 ] && [ $i != 6 ] && [ $i != 11 ] && [ $i != 12 ]; then
+        arr3[i]=Log_arr3$i
+    fi
+done
+
+
+
+OUTPUT="switchlog.`date \"+%Y%m%d_%H%M%S\"`.sql";
+OUTPUT_GZ="$OUTPUT.gz";
+mysqldump -u$ROOTUSER -p$ROOTPSWD \
+	--lock-all-tables \
+    $DATABASE ${arr1[@]} ${arr3[@]} ${arr2[@]} \
+    $TABLE1 $TABLE2 \
+    | gzip > $LOGDIR/$OUTPUT_GZ;
+chmod 766 $LOGDIR/$OUTPUT_GZ
+
+OUTPUT="switchshell.`date \"+%Y%m%d_%H%M%S\"`.sql";
+OUTPUT_GZ="$OUTPUT.gz";
+mysqldump -u$ROOTUSER -p$ROOTPSWD \
+	--lock-all-tables \
+    $DATABASE $TABLE_SHELL | gzip > $LOGDIR/$OUTPUT_GZ;
+chmod 766 $LOGDIR/$OUTPUT_GZ
+
+OUTPUT="serverlog.`date \"+%Y%m%d_%H%M%S\"`.sql";
+OUTPUT_GZ="$OUTPUT.gz";
+
+mysqldump -u$ROOTUSER -p$ROOTPSWD \
+	--lock-all-tables \
+    $DATABASE $TABLE3 | gzip > $LOGDIR/$OUTPUT_GZ;
+chmod 766 $LOGDIR/$OUTPUT_GZ
+
+
+for i in ${arr1[@]};
+do
+    mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $i;";
+done
+
+for i in ${arr3[@]};
+do
+    mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $i;";
+done
+
+for i in ${arr2[@]};
+do
+    mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $i;";
+done
+
+
+mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $TABLE1;";
+mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $TABLE2;";
+mysql -u$USER -p$PSWD $DATABASE -e "TRUNCATE TABLE $TABLE3;";
